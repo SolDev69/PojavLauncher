@@ -177,6 +177,7 @@ public class JREUtils {
     }
 
     public static void setJavaEnvironment(Activity activity, String jreHome) throws Throwable {
+        final String localMesaLibrary = loadGraphicsLibrary();
         Map<String, String> envMap = new ArrayMap<>();
         envMap.put("POJAV_NATIVEDIR", NATIVE_LIB_DIR);
         envMap.put("JAVA_HOME", jreHome);
@@ -223,20 +224,12 @@ public class JREUtils {
 
         if(LOCAL_RENDERER != null) {
             envMap.put("POJAV_RENDERER", LOCAL_RENDERER);
+            envMap.put("MESA_LIBRARY", localMesaLibrary);
             if(LOCAL_RENDERER.equals("opengles3_desktopgl_angle_vulkan")) {
                 envMap.put("POJAVEXEC_EGL","libEGL_angle.so"); // Use ANGLE EGL
             }
             if(LOCAL_RENDERER.equals("opengles3_desktopgl_angle_vulkan_new")) {
                 envMap.put("POJAVEXEC_EGL","libEGL_angle_new.so"); // Use ANGLE EGL
-            }
-            if(LOCAL_RENDERER.equals("malihw_panfrost")) {
-                envMap.put("POJAVEXEC_OSMESA", "libOSMesa_pan.so");
-            }
-            if(LOCAL_RENDERER.equals("vulkan_zink_legacy")) {
-                envMap.put("POJAVEXEC_OSMESA", "libOSMesa_znL.so");
-            }
-            if(LOCAL_RENDERER.equals("vulkan_zink_standard")) {
-                envMap.put("POJAVEXEC_OSMESA", "libOSMesa_std.so");
             }
         }
         if(LauncherPreferences.PREF_BIG_CORE_AFFINITY) envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
