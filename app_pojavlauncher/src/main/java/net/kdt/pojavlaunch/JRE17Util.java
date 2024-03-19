@@ -92,7 +92,7 @@ public class JRE17Util {
 
     private static void showRuntimeFail(Activity activity, JMinecraftVersionList.Version verInfo) {
         Tools.dialogOnUiThread(activity, activity.getString(R.string.global_error),
-                activity.getString(R.string.multirt_nocompartiblert, verInfo.javaVersion.majorVersion));
+                activity.getString(R.string.multirt_nocompatiblert, verInfo.javaVersion.majorVersion));
     }
 
 }

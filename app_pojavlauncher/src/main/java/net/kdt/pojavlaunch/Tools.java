@@ -1122,11 +1122,7 @@ public final class Tools {
     }
 
     public static boolean checkVulkanSupport(PackageManager packageManager) {
-        if(SDK_INT >= Build.VERSION_CODES.N) {
-            return packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_LEVEL) &&
-                    packageManager.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_VERSION);
-        }
-        return false;
+        return SDK_INT >= Build.VERSION_CODES.N;
     }
 
     public static <T> T getWeakReference(WeakReference<T> weakReference) {

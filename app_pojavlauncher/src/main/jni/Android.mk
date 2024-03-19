@@ -20,6 +20,17 @@ LOCAL_SRC_FILES := tinywrapper/main.c tinywrapper/string_utils.c
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/tinywrapper
 include $(BUILD_SHARED_LIBRARY)
 
+include $(CLEAR_VARS)
+LOCAL_MODULE := angle_gles2_new
+LOCAL_SRC_FILES := tinywrapper_new_angle/angle-gles/$(TARGET_ARCH_ABI)/libGLESv2_angle.so
+include $(PREBUILT_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := tinywrapper_new_angle
+LOCAL_SHARED_LIBRARIES := angle_gles2_new
+LOCAL_SRC_FILES := tinywrapper_new_angle/main.c tinywrapper_new_angle/string_utils.c
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/tinywrapper_new_angle
+include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 # Link GLESv2 for test

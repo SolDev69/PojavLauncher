@@ -22,6 +22,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.oracle.dalvik.*;
 import java.io.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import net.kdt.pojavlaunch.*;
 import net.kdt.pojavlaunch.extra.ExtraConstants;
 import net.kdt.pojavlaunch.extra.ExtraCore;
@@ -209,8 +212,8 @@ public class JREUtils {
         envMap.put("force_glsl_extensions_warn", "true");
         envMap.put("allow_higher_compat_version", "true");
         envMap.put("allow_glsl_extension_directive_midshader", "true");
-        envMap.put("MESA_LOADER_DRIVER_OVERRIDE", "zink");
-        envMap.put("VTEST_SOCKET_NAME", new File(Tools.DIR_CACHE, ".virgl_test").getAbsolutePath());
+
+        envMap.put("VTEST_SOCKET_NAME", new File(Tools.DIR_CACHE, ".virgl_test").getAbsolutePath()); /* we'll save this for later 🤫 */
 
         envMap.put("LD_LIBRARY_PATH", LD_LIBRARY_PATH);
         envMap.put("PATH", jreHome + "/bin:" + Os.getenv("PATH"));
@@ -221,8 +224,19 @@ public class JREUtils {
         if(LOCAL_RENDERER != null) {
             envMap.put("POJAV_RENDERER", LOCAL_RENDERER);
             if(LOCAL_RENDERER.equals("opengles3_desktopgl_angle_vulkan")) {
-                envMap.put("LIBGL_ES", "3");
                 envMap.put("POJAVEXEC_EGL","libEGL_angle.so"); // Use ANGLE EGL
+            }
+            if(LOCAL_RENDERER.equals("opengles3_desktopgl_angle_vulkan_new")) {
+                envMap.put("POJAVEXEC_EGL","libEGL_angle_new.so"); // Use ANGLE EGL
+            }
+            if(LOCAL_RENDERER.equals("malihw_panfrost")) {
+                envMap.put("POJAVEXEC_OSMESA", "libOSMesa_pan.so");
+            }
+            if(LOCAL_RENDERER.equals("vulkan_zink_legacy")) {
+                envMap.put("POJAVEXEC_OSMESA", "libOSMesa_znL.so");
+            }
+            if(LOCAL_RENDERER.equals("vulkan_zink_standard")) {
+                envMap.put("POJAVEXEC_OSMESA", "libOSMesa_std.so");
             }
         }
         if(LauncherPreferences.PREF_BIG_CORE_AFFINITY) envMap.put("POJAV_BIG_CORE_AFFINITY", "1");
@@ -273,6 +287,28 @@ public class JREUtils {
         // return ldLibraryPath;
     }
 
+    // Move to it's own function, this gets the allocated ram as an int.
+    static int getAllocatedMemory(List<String> userArgs) {
+        for (String s : userArgs)
+            if (s.contains("Xmx")) {
+                Matcher matcher = Pattern.compile("\\d+").matcher(s);
+
+                // .find() to prevents IllegalStateException
+                if (matcher.find()) {
+                    int multiplier = s.charAt(s.indexOf(matcher.group()) + 1) == 'G' ? 1024 : 1;
+                    return (Integer.valueOf(matcher.group()) * multiplier);
+                }
+            }
+        return 0;
+    }
+
+    static boolean isUsingCustomMem(List<String> userArgs) {
+        for (String s : userArgs)
+            if (s.contains("Xmx") || s.contains("Xms"))
+                return true;
+        return false;
+    }
+
     public static void launchJavaVM(final AppCompatActivity activity, final Runtime runtime, File gameDirectory, final List<String> JVMArgs, final String userArgsString) throws Throwable {
         String runtimeHome = MultiRTUtils.getRuntimeHome(runtime.name).getAbsolutePath();
 
@@ -284,23 +320,23 @@ public class JREUtils {
         List<String> userArgs = getJavaArgs(activity, runtimeHome, userArgsString);
 
         //Remove arguments that can interfere with the good working of the launcher
-        purgeArg(userArgs,"-Xms");
-        purgeArg(userArgs,"-Xmx");
         purgeArg(userArgs,"-d32");
         purgeArg(userArgs,"-d64");
-        purgeArg(userArgs, "-Xint");
         purgeArg(userArgs, "-XX:+UseTransparentHugePages");
         purgeArg(userArgs, "-XX:+UseLargePagesInMetaspace");
         purgeArg(userArgs, "-XX:+UseLargePages");
-        purgeArg(userArgs, "-Dorg.lwjgl.opengl.libname");
 
         //Add automatically generated args
-        userArgs.add("-Xms" + LauncherPreferences.PREF_RAM_ALLOCATION + "M");
-        userArgs.add("-Xmx" + LauncherPreferences.PREF_RAM_ALLOCATION + "M");
-        if(LOCAL_RENDERER != null) userArgs.add("-Dorg.lwjgl.opengl.libname=" + graphicsLib);
+        if (!isUsingCustomMem(userArgs))
+        {
+            userArgs.add("-Xms" + LauncherPreferences.PREF_RAM_ALLOCATION + "M");
+            userArgs.add("-Xmx" + LauncherPreferences.PREF_RAM_ALLOCATION + "M");
+        }
 
+        if(LOCAL_RENDERER != null) userArgs.add("-Dorg.lwjgl.opengl.libname=" + graphicsLib);
         userArgs.addAll(JVMArgs);
-        activity.runOnUiThread(() -> Toast.makeText(activity, activity.getString(R.string.autoram_info_msg,LauncherPreferences.PREF_RAM_ALLOCATION), Toast.LENGTH_SHORT).show());
+
+        activity.runOnUiThread(() -> Toast.makeText(activity, activity.getString(R.string.autoram_info_msg,getAllocatedMemory(userArgs)), Toast.LENGTH_SHORT).show());
         System.out.println(JVMArgs);
 
         initJavaRuntime(runtimeHome);
@@ -448,11 +484,27 @@ public class JREUtils {
         String renderLibrary;
         switch (LOCAL_RENDERER){
             case "opengles2":
-            case "opengles2_5":
-            case "opengles3":
-                renderLibrary = "libgl4es_114.so"; break;
-            case "vulkan_zink": renderLibrary = "libOSMesa.so"; break;
+                renderLibrary = "libgl4es_114.so";
+                break;
+            case "vgpu":
+                renderLibrary = "libvgpu.so";
+                break;
+            case "malihw_panfrost": 
+                renderLibrary = "libOSMesa_pan.so";
+                break;
+            case "virgl": 
+            case "vulkan_zink_legacy": 
+                renderLibrary = "libOSMesa_znL.so";
+                break;
+            case "vulkan_zink_standard":
+                renderLibrary = "libOSMesa_std.so";
+                break;
+            case "vulkan_zink":
+            case "adrhw_freedreno": 
+                renderLibrary = "libOSMesa.so";
+                break;
             case "opengles3_desktopgl_angle_vulkan" : renderLibrary = "libtinywrapper.so"; break;
+            case "opengles3_desktopgl_angle_vulkan_new" : renderLibrary = "libtinywrapper_new_angle.so"; break;
             default:
                 Log.w("RENDER_LIBRARY", "No renderer selected, defaulting to opengles2");
                 renderLibrary = "libgl4es_114.so";
