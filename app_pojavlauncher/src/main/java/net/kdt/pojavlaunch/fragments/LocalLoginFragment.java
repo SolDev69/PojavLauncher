@@ -33,7 +33,8 @@ public class LocalLoginFragment extends Fragment {
             if(!checkEditText()) return;
 
             ExtraCore.setValue(ExtraConstants.MOJANG_LOGIN_TODO, new String[]{
-                    mUsernameEditText.getText().toString(), "" });
+                    mUsernameEditText.getText().toString(), ""
+            });
 
             Tools.swapFragment(requireActivity(), MainMenuFragment.class, MainMenuFragment.TAG, null);
         });
