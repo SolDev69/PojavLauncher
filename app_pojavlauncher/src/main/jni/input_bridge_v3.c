@@ -99,14 +99,7 @@ void handleFramebufferSizeJava(long window, int w, int h) {
 }
 
 void pojavPumpEvents(void* window) {
-    if(solcraft_environ->isPumpingEvents) return;
-    // prevent further calls until we exit the loop
-    // by spec, they will be called on the same thread so no synchronization here
-    solcraft_environ->isPumpingEvents = true;
-
-    if((solcraft_environ->cLastX != solcraft_environ->cursorX || solcraft_environ->cLastY != solcraft_environ->cursorY) && solcraft_environ->GLFW_invoke_CursorPos) {
-        solcraft_environ->cLastX = solcraft_environ->cursorX;
-        solcraft_environ->cLastY = solcraft_environ->cursorY;
+    if(solcraft_environ->shouldUpdateMouse) {
         solcraft_environ->GLFW_invoke_CursorPos(window, floor(solcraft_environ->cursorX),
                                              floor(solcraft_environ->cursorY));
     }
@@ -148,11 +141,10 @@ void pojavPumpEvents(void* window) {
     }
 
     // The out target index is updated by the rewinder
-    solcraft_environ->isPumpingEvents = false;
 }
 
-/** Setup the amount of event that will get pumped into each window */
-void pojavComputeEventTarget() {
+/** Prepare the library for sending out callbacks to all windows */
+void pojavStartPumping() {
     size_t counter = atomic_load_explicit(&solcraft_environ->eventCounter, memory_order_acquire);
     size_t index = solcraft_environ->outEventIndex;
 
@@ -163,14 +155,23 @@ void pojavComputeEventTarget() {
     // Only accessed by one unique thread, no need for atomic store
     solcraft_environ->inEventCount = counter;
     solcraft_environ->outTargetIndex = targetIndex;
+
+    //PumpEvents is called for every window, so this logic should be there in order to correctly distribute events to all windows.
+    if((solcraft_environ->cLastX != solcraft_environ->cursorX || solcraft_environ->cLastY != solcraft_environ->cursorY) && solcraft_environ->GLFW_invoke_CursorPos) {
+        solcraft_environ->cLastX = solcraft_environ->cursorX;
+        solcraft_environ->cLastY = solcraft_environ->cursorY;
+        solcraft_environ->shouldUpdateMouse = true;
+    }
 }
 
-/** Apply index offsets after events have been pumped */
-void pojavRewindEvents() {
+/** Prepare the library for the next round of new events */
+void pojavStopPumping() {
     solcraft_environ->outEventIndex = solcraft_environ->outTargetIndex;
 
     // New events may have arrived while pumping, so remove only the difference before the start and end of execution
     atomic_fetch_sub_explicit(&solcraft_environ->eventCounter, solcraft_environ->inEventCount, memory_order_acquire);
+    // Make sure the next frame won't send mouse updates if it's unnecessary
+    solcraft_environ->shouldUpdateMouse = false;
 }
 
 JNIEXPORT void JNICALL
