@@ -489,18 +489,18 @@ public class JREUtils {
             case "vgpu":
                 renderLibrary = "libvgpu.so";
                 break;
-            case "malihw_panfrost": 
+            case "malihw_panfrost":
                 renderLibrary = "libOSMesa_pan.so";
                 break;
-            case "virgl": 
-            case "vulkan_zink_legacy": 
+            case "virgl":
+            case "vulkan_zink_legacy":
                 renderLibrary = "libOSMesa_znL.so";
                 break;
             case "vulkan_zink_standard":
                 renderLibrary = "libOSMesa_std.so";
                 break;
             case "vulkan_zink":
-            case "adrhw_freedreno": 
+            case "adrhw_freedreno":
                 renderLibrary = "libOSMesa.so";
                 break;
             case "opengles3_desktopgl_angle_vulkan" : renderLibrary = "libtinywrapper.so"; break;
@@ -618,6 +618,5 @@ public class JREUtils {
     static {
         System.loadLibrary("pojavexec");
         System.loadLibrary("pojavexec_awt");
-        System.loadLibrary("istdio");
     }
 }
