@@ -4,7 +4,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <dlfcn.h>
+<<<<<<< HEAD
 #include "environ/environ.h"
+=======
+#include "loader_dlopen.h"
+>>>>>>> upstream/v3_openjdk
 #include "osmesa_loader.h"
 #include "renderer_config.h"
 
@@ -19,7 +23,9 @@ void (*glFinish_p) (void);
 void (*glClearColor_p) (GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
 void (*glClear_p) (GLbitfield mask);
 void (*glReadPixels_p) (GLint x, GLint y, GLsizei width, GLsizei height, GLenum format, GLenum type, void * data);
+void* (*OSMesaGetProcAddress_p)(const char* funcName);
 
+<<<<<<< HEAD
 void dlsym_OSMesa() {
     char* main_osm_libname = getenv("POJAVEXEC_OSMESA");
     char* main_path = NULL;
@@ -48,3 +54,25 @@ void dlsym_OSMesa() {
     glFinish_p = dlsym(dl_handle,"glFinish");
     glReadPixels_p = dlsym(dl_handle,"glReadPixels");
 }
+=======
+bool dlsym_OSMesa() {
+    void* dl_handle = loader_dlopen("libOSMesa.so.8", "libOSMesa.so", RTLD_LOCAL | RTLD_LAZY);
+    if(dl_handle == NULL) return false;
+    OSMesaGetProcAddress_p = dlsym(dl_handle, "OSMesaGetProcAddress");
+    if(OSMesaGetProcAddress_p == NULL) {
+        printf("%s\n", dlerror());
+        return false;
+    }
+    OSMesaMakeCurrent_p = OSMesaGetProcAddress_p("OSMesaMakeCurrent");
+    OSMesaGetCurrentContext_p = OSMesaGetProcAddress_p("OSMesaGetCurrentContext");
+    OSMesaCreateContext_p = OSMesaGetProcAddress_p("OSMesaCreateContext");
+    OSMesaDestroyContext_p = OSMesaGetProcAddress_p("OSMesaDestroyContext");
+    OSMesaPixelStore_p = OSMesaGetProcAddress_p("OSMesaPixelStore");
+    glGetString_p = OSMesaGetProcAddress_p("glGetString");
+    glClearColor_p = OSMesaGetProcAddress_p("glClearColor");
+    glClear_p = OSMesaGetProcAddress_p("glClear");
+    glFinish_p = OSMesaGetProcAddress_p("glFinish");
+    glReadPixels_p = OSMesaGetProcAddress_p("glReadPixels");
+    return true;
+}
+>>>>>>> upstream/v3_openjdk
