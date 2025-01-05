@@ -325,14 +325,11 @@ public class JREUtils {
         purgeArg(userArgs, "-XX:+UseTransparentHugePages");
         purgeArg(userArgs, "-XX:+UseLargePagesInMetaspace");
         purgeArg(userArgs, "-XX:+UseLargePages");
-<<<<<<< HEAD
-=======
         purgeArg(userArgs, "-Dorg.lwjgl.opengl.libname");
         // Don't let the user specify a custom Freetype library (as the user is unlikely to specify a version compiled for Android)
         purgeArg(userArgs, "-Dorg.lwjgl.freetype.libname");
         // Overridden by us to specify the exact number of cores that the android system has
         purgeArg(userArgs, "-XX:ActiveProcessorCount");
->>>>>>> upstream/v3_openjdk
 
         //Add automatically generated args
         if (!isUsingCustomMem(userArgs))
