@@ -399,18 +399,11 @@ int pojavInitOpenGL() {
 extern void updateMonitorSize(int width, int height);
 
 EXTERNAL_API int pojavInit() {
-<<<<<<< HEAD
     ANativeWindow_acquire(solcraft_environ->pojavWindow);
     solcraft_environ->savedWidth = ANativeWindow_getWidth(solcraft_environ->pojavWindow);
     solcraft_environ->savedHeight = ANativeWindow_getHeight(solcraft_environ->pojavWindow);
     ANativeWindow_setBuffersGeometry(solcraft_environ->pojavWindow,solcraft_environ->savedWidth,solcraft_environ->savedHeight,AHARDWAREBUFFER_FORMAT_R8G8B8X8_UNORM);
-=======
-    ANativeWindow_acquire(pojav_environ->pojavWindow);
-    pojav_environ->savedWidth = ANativeWindow_getWidth(pojav_environ->pojavWindow);
-    pojav_environ->savedHeight = ANativeWindow_getHeight(pojav_environ->pojavWindow);
-    ANativeWindow_setBuffersGeometry(pojav_environ->pojavWindow,pojav_environ->savedWidth,pojav_environ->savedHeight,AHARDWAREBUFFER_FORMAT_R8G8B8X8_UNORM);
-    updateMonitorSize(pojav_environ->savedWidth, pojav_environ->savedHeight);
->>>>>>> upstream/v3_openjdk
+    updateMonitorSize(solcraft_environ->savedWidth, solcraft_environ->savedHeight);
     pojavInitOpenGL();
     return 1;
 }

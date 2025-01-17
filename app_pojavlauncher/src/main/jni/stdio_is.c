@@ -40,7 +40,7 @@ static bool recordBuffer(char* buf, ssize_t len) {
 static void *logger_thread() {
     JNIEnv *env;
     jstring writeString;
-    JavaVM* dvm = pojav_environ->dalvikJavaVMPtr;
+    JavaVM* dvm = solcraft_environ->dalvikJavaVMPtr;
     (*dvm)->AttachCurrentThread(dvm, &env, NULL);
     ssize_t  rsize;
     char buf[2050];
