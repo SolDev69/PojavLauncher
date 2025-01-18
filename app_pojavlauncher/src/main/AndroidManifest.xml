@@ -55,7 +55,8 @@
         </activity>
         <activity
             android:name=".LauncherActivity"
-            android:label="@string/app_short_name" />
+            android:label="@string/app_short_name"
+            android:windowSoftInputMode="adjustResize"/>
         <activity
             android:name=".ImportControlActivity"
             android:configChanges="keyboard|keyboardHidden"
