@@ -338,6 +338,9 @@ public class JREUtils {
             userArgs.add("-Xmx" + LauncherPreferences.PREF_RAM_ALLOCATION + "M");
         }
 
+        // Set lwjgl libname
+        if(LOCAL_RENDERER != null) userArgs.add("-Dorg.lwjgl.opengl.libname=" + graphicsLib);
+
         // Force LWJGL to use the Freetype library intended for it, instead of using the one
         // that we ship with Java (since it may be older than what's needed)
         userArgs.add("-Dorg.lwjgl.freetype.libname="+ NATIVE_LIB_DIR+"/libfreetype.so");
